@@ -1,3 +1,4 @@
+<img width="320" height="873" alt="5cJjc" src="https://github.com/user-attachments/assets/e2c29c5f-fc79-44db-879a-905abb571a50" />
 # Watch SA
 
 Spot it. Snap it. Help clean it up.
