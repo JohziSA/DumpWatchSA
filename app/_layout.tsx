@@ -1,22 +1,19 @@
-import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useMemo } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { ReportsProvider } from '@/context/ReportsProvider';
+import { WatchThemeProvider, useAppTheme } from '@/context/ThemeProvider';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -24,7 +21,6 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -39,18 +35,47 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <WatchThemeProvider>
+      <ThemedRoot />
+    </WatchThemeProvider>
+  );
 }
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+function ThemedRoot() {
+  const { colors, scheme } = useAppTheme();
+  const navigationTheme = useMemo(
+    () => ({
+      ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
+      colors: {
+        ...(scheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+        background: colors.background,
+        card: colors.card,
+        text: colors.text,
+        border: colors.line,
+        primary: colors.forest,
+      },
+    }),
+    [colors, scheme],
+  );
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <ReportsProvider>
+      <ThemeProvider value={navigationTheme}>
+        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background },
+          }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="dump" />
+          <Stack.Screen name="water" />
+          <Stack.Screen name="watch/[kind]" />
+          <Stack.Screen name="province/[name]" />
+          <Stack.Screen name="report/[id]" />
+        </Stack>
+      </ThemeProvider>
+    </ReportsProvider>
   );
 }
